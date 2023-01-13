@@ -17,3 +17,6 @@ func main() {
 func generate(a *server.App) {
 	a.Generate()
 }
+
+// TODO:
+// 1. Написать логику создания фабрик.

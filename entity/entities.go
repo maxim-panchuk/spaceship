@@ -7,16 +7,15 @@ type Item struct {
 }
 
 type Carrier struct {
-	CarrierId             int     `json:"carrier_id"`
-	CarrierName           string  `json:"carrier_name"`
-	CarrierPower          float32 `json:"carrier_power"`
-	CarrierSpeed          float32 `json:"carrier_speed"`
-	CarrierFame           float32 `json:"carrier_fame"`
-	DeliveryPerformanceId int     `json:"delivery_performance_id"`
+	CarrierId    int    `json:"carrier_id"`
+	CarrierName  string `json:"carrier_name"`
+	CarrierPower int    `json:"carrier_power"`
+	CarrierSpeed int    `json:"carrier_speed"`
 }
 
 type DeliveryAgreement struct {
 	DeliveryAgreementId int `json:"delivery_agreement_id"`
+	DlvrReqPrdctRelId   int `json:"dlvr_req_prdct_rel_id"`
 	CarrierId           int `json:"carrier_id"`
 	DelilveryPrice      int `json:"delivery_price"`
 	DealPrice           int `json:"deal_price"`
@@ -51,8 +50,10 @@ type DeliveryRequireDeal struct {
 // }
 
 type Factory struct {
+	FactoryId   int    `json:"factory_id"`
 	PlanedId    int    `json:"planet_id"`
 	FactoryName string `json:"factory_name"`
+	Username    string `json:"username"`
 }
 
 type ItemFactoryProduction struct {
@@ -100,10 +101,10 @@ type SectorRelation struct {
 // }
 
 type SpacePirate struct {
-	PirateId    int     `json:"pirate_id"`
-	PirateName  string  `json:"pirate_name"`
-	PiratePower float32 `json:"pirate_power"`
-	SectorId    int     `json:"sector_id"`
+	PirateId    int    `json:"pirate_id"`
+	PirateName  string `json:"pirate_name"`
+	PiratePower int    `json:"pirate_power"`
+	SectorId    int    `json:"sector_id"`
 }
 
 type Way struct {
