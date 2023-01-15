@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"net/http"
-	"spaceship/entity"
 	"spaceship/internal/deal"
 
 	"github.com/gin-gonic/gin"
@@ -18,20 +17,32 @@ func newHandler(useCase deal.UseCase) *handler {
 	}
 }
 
-func (h *handler) makeRequire(c *gin.Context) {
-	var r entity.DeliveryRequireDeal
+type ReqCred struct {
+	FactoryBuyerId  int `json:"factory_buyer_id"`
+	FactorySellerId int `json:"factory_seller_id"`
+	ItemId          int `json:"item_id"`
+	Amount          int `json:"amount"`
+}
 
-	if err := c.BindJSON(r); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, nil)
+func (h *handler) makeRequire(c *gin.Context) {
+	var r ReqCred
+
+	if err := c.BindJSON(&r); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, "Error while converting entiry")
 		return
 	}
 
-	err := h.useCase.MakeRequire(r.FactoryBuyerId, r.FactorySellerId, r.ItemId, r.Amount)
+	id, err := h.useCase.MakeRequire(r.FactoryBuyerId, r.FactorySellerId, r.ItemId, r.Amount)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, "Error while making require request!")
 	}
 
-	c.IndentedJSON(http.StatusOK, "Require sucessfully created!")
+	err = h.useCase.MakeAgreement(id)
 
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, "Error while making rotue")
+	}
+
+	c.IndentedJSON(http.StatusOK, "Require sucessfully created!")
 }

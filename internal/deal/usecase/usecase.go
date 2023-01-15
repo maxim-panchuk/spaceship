@@ -2,7 +2,10 @@ package usecase
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"spaceship/internal/deal"
+	"spaceship/internal/util/finder"
 )
 
 type DealUseCase struct {
@@ -15,14 +18,14 @@ func NewDealUseCase(repo deal.Repository) *DealUseCase {
 	}
 }
 
-func (u *DealUseCase) MakeRequire(factoryBuyerId, factorySellerId, itemId, amount int) error {
-	err := u.repo.InsertRequire(factoryBuyerId, factorySellerId, itemId, amount)
+func (u *DealUseCase) MakeRequire(factoryBuyerId, factorySellerId, itemId, amount int) (int, error) {
+	id, err := u.repo.InsertRequire(factoryBuyerId, factorySellerId, itemId, amount)
 
 	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	return id, err
 }
 
 func (u *DealUseCase) PingRequires(factorySellerId int) (string, error) {
@@ -43,24 +46,39 @@ func (u *DealUseCase) PingRequires(factorySellerId int) (string, error) {
 
 func (u *DealUseCase) MakeAgreement(dlvrReq int) error {
 	// TODO: Достать сектора фабрик учавствующих в сделке
-	_, err := u.repo.GetRequireById(dlvrReq)
+	require, err := u.repo.GetRequireById(dlvrReq)
 
 	if err != nil {
+		log.Fatal(err)
 		return err
 	}
 
-	//fbS, err := u.repo.GetSectorByFId(require.FactoryBuyerId)
+	fbS, err := u.repo.GetSectorByFId(require.FactoryBuyerId)
 
 	if err != nil {
+		fmt.Println("Error getting sector by fid111")
+		log.Fatal(err)
 		return err
 	}
 
-	//fsS, err := u.repo.GetSectorByFId(require.FactorySellerId)
+	fsS, err := u.repo.GetSectorByFId(require.FactorySellerId)
 
+	if err != nil {
+		fmt.Println("Error getting sector by fid")
+		log.Fatal(err)
+		return err
+	}
+
+	secRelSlice, err := u.repo.GetAllSecRel()
+
+	if err != nil {
+		fmt.Println("Error while getting sec rel")
+		log.Fatal(err)
+		return err
+	}
+
+	v := finder.Find(secRelSlice, fsS.SectorId, fbS.SectorId)
+	fmt.Println(v)
 	return nil
-
-}
-
-func findBestWay() {
 
 }

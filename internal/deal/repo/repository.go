@@ -21,25 +21,20 @@ func NewFactoryRepository(conn *pgx.Conn) *DealRepository {
 }
 
 // Добавить требование на поставку
-func (r *DealRepository) InsertRequire(factoryBuyerId, factorySellerId, itemId, amount int) error {
+func (r *DealRepository) InsertRequire(factoryBuyerId, factorySellerId, itemId, amount int) (int, error) {
 	sqlStatement := `
 	INSERT INTO delivery_require_deal (factory_buyer_id, factory_seller_id, item_id, amount)
-	VALUES ($1, $2, $3, $4)`
+	VALUES ($1, $2, $3, $4) RETURNING dlvr_req_prdct_rel_id`
 
-	rows, err := r.connection.Query(context.Background(), sqlStatement, factoryBuyerId, factorySellerId, itemId, amount)
+	var id int
 
-	if rows.Err() != nil {
-		fmt.Fprintf(os.Stderr, "rows Error: %v\n", rows.Err())
-		os.Exit(1)
-	}
-
-	defer rows.Close()
+	err := r.connection.QueryRow(context.Background(), sqlStatement, factoryBuyerId, factorySellerId, itemId, amount).Scan(&id)
 
 	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	return id, err
 }
 
 func (r *DealRepository) GetRequiresBySeller(factorySellerId int) ([]entity.DeliveryRequireDeal, error) {
@@ -145,11 +140,48 @@ func (r *DealRepository) GetRequireById(dlvReqId int) (entity.DeliveryRequireDea
 	row := r.connection.QueryRow(context.Background(),
 		sqlStatement, dlvReqId)
 
-	err := row.Scan(&f)
+	err := row.Scan(&f.DlvrReqPrdctRelId, &f.FactoryBuyerId, &f.FactorySellerId, &f.ItemId, &f.Amount)
 
 	if err != nil {
 		return entity.DeliveryRequireDeal{}, err
 	}
 
 	return f, nil
+}
+
+func (r *DealRepository) GetAllSecRel() ([]entity.SectorRelation, error) {
+
+	sqlStatement := `
+	SELECT *
+	FROM sec_rel`
+
+	secRelSlice := make([]entity.SectorRelation, 0)
+
+	rows, err := r.connection.Query(context.Background(), sqlStatement)
+
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	for rows.Next() {
+		var f entity.SectorRelation
+
+		err := rows.Scan(&f.SecRelId, &f.SectorId1, &f.SectorId2, &f.Distance)
+
+		if err != nil {
+			return nil, err
+		}
+
+		secRelSlice = append(secRelSlice, f)
+	}
+
+	if rows.Err() != nil {
+		fmt.Fprintf(os.Stderr, "rows Error: %v\n", rows.Err())
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	return secRelSlice, nil
 }
