@@ -99,7 +99,7 @@ func (h *handler) getFactoriesWhereItem(c *gin.Context) {
 		return
 	}
 
-	factorySlice, err := h.useCase.GetFactoriesWhereItem(intItemId)
+	factorySlice, err := h.useCase.GetFactoryProductions(intItemId)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, "Error while getting factory slice!")

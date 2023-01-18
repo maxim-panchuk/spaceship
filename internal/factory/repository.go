@@ -9,4 +9,5 @@ type Repository interface {
 	GetFactoryStock(factoryId int) ([]entity.ItemFactoryProduction, error)
 	UpdateFactoryStockAmount(factoryId, itemId, itemAmount int) error
 	GetFactoriesWhereItem(itemId int) ([]entity.Factory, error)
+	GetFactoryProductionsByItemId(itemId int) ([]entity.ItemFactoryProduction, error)
 }

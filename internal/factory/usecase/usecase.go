@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"encoding/json"
+	"fmt"
 	"spaceship/entity"
 	"spaceship/internal/factory"
 )
@@ -72,4 +73,20 @@ func (f *FactoryCreator) InsertItemStock(factoryId, itemId int, itemPrice float3
 	}
 
 	return nil
+}
+
+func (f *FactoryCreator) GetFactoryProductions(itemId int) (string, error) {
+	slice, err := f.repo.GetFactoryProductionsByItemId(itemId)
+
+	if err != nil {
+		return "", err
+	}
+
+	var str string
+
+	for _, item := range slice {
+		str += fmt.Sprintf("[factory_id: %v, price: %v, amount: %v] ", item.FactoryId, item.ItemPriceToSell, item.ItemAmountInStock)
+	}
+
+	return str, nil
 }

@@ -1,13 +1,12 @@
 package finder
 
 import (
-	"fmt"
 	"spaceship/entity"
 )
 
 const ofsset int = 496
 
-func Find(arr []entity.SectorRelation, from, dest int) int {
+func Find(arr []entity.SectorRelation, from, dest int) []int {
 
 	mp := make(map[int][]int, 0)
 
@@ -33,26 +32,24 @@ func Find(arr []entity.SectorRelation, from, dest int) int {
 		}
 	}
 
-	for key, val := range mp {
-		fmt.Printf("%v -> %v\n", key, val)
-	}
-
 	matr := matrix(mp, arr)
+	routes := dijkstra(len(mp), from-ofsset, matr)
+	route := defineRoute(routes, from-ofsset, dest-ofsset)
 
-	for _, i := range matr {
-		for _, j := range i {
-			fmt.Printf("%v ", j)
-		}
+	return route
+}
 
-		fmt.Println()
+func defineRoute(union []int, from, to int) []int {
+	route := make([]int, 0)
+
+	curr := to
+	route = append(route, curr+ofsset)
+	for curr != from {
+		route = append(route, union[curr]+ofsset)
+		curr = union[curr]
 	}
 
-	weights := dijkstra(len(mp), from-ofsset, matr)
-
-	fmt.Println()
-	fmt.Println(weights)
-
-	return -1
+	return route
 }
 
 func matrix(mp map[int][]int, arr []entity.SectorRelation) [][]int {
@@ -102,7 +99,13 @@ func dijkstra(n, s int, mp [][]int) []int {
 		weight[i] = 10000000000
 	}
 
+	route := make([]int, n)
+	for i, _ := range route {
+		route[i] = -1
+	}
+
 	weight[s] = 0
+	route[s] = s
 
 	for i := 0; i < n; i++ {
 		min_weight := 10000000001
@@ -116,20 +119,11 @@ func dijkstra(n, s int, mp [][]int) []int {
 		for z := 0; z < n; z++ {
 			if weight[id_min_weight]+mp[id_min_weight][z] < weight[z] {
 				weight[z] = weight[id_min_weight] + mp[id_min_weight][z]
+				route[z] = id_min_weight
 			}
 		}
 		valid[id_min_weight] = false
 	}
 
-	return weight
+	return route
 }
-
-// func contains(arr []int, val int) bool {
-// 	for _, item := range arr {
-// 		if item == val {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-// }

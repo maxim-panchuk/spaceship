@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"fmt"
 	"net/http"
 	"spaceship/internal/deal"
 
@@ -22,6 +23,7 @@ type ReqCred struct {
 	FactorySellerId int `json:"factory_seller_id"`
 	ItemId          int `json:"item_id"`
 	Amount          int `json:"amount"`
+	CarrierId       int `json:"carrier_id"`
 }
 
 func (h *handler) makeRequire(c *gin.Context) {
@@ -38,11 +40,47 @@ func (h *handler) makeRequire(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, "Error while making require request!")
 	}
 
-	err = h.useCase.MakeAgreement(id)
+	str, err := h.useCase.MakeAgreement(id, r.CarrierId)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, "Error while making rotue")
 	}
 
-	c.IndentedJSON(http.StatusOK, "Require sucessfully created!")
+	c.IndentedJSON(http.StatusOK, fmt.Sprintf(str, id))
+}
+
+type DeliveryCreds struct {
+	F1 int `json:"f1"`
+	F2 int `json:"f2"`
+}
+
+func (h *handler) getDeliveryInfo(c *gin.Context) {
+	var dc DeliveryCreds
+
+	if err := c.BindJSON(&dc); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, "Error while converting ")
+		return
+	}
+
+	distance, info, err := h.useCase.GetInfoRoute(dc.F1, dc.F2)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusConflict, "Error while getting route info!")
+		return
+	}
+
+	resultString := fmt.Sprintf("Distance: %v Route: %s", distance, info)
+
+	c.IndentedJSON(http.StatusOK, resultString)
+}
+
+func (h *handler) getCarriers(c *gin.Context) {
+	carriers, err := h.useCase.GetAllCarriers()
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, carriers)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, carriers)
 }

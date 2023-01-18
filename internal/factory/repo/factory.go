@@ -34,8 +34,6 @@ func (fr *FactoryRepository) Insert(planetId int, factoryName, username string) 
 		return "nil", err
 	}
 
-	// fr.connection.Close(context.Background())
-
 	return strconv.Itoa(*factoryId), nil
 
 }
@@ -90,8 +88,6 @@ func (fr *FactoryRepository) InsertItemStock(factoryId, itemId int, itemPrice fl
 		return err
 	}
 
-	// fr.connection.Close(context.Background())
-
 	return nil
 }
 
@@ -123,8 +119,6 @@ func (fr *FactoryRepository) GetFactoryStock(factoryId int) ([]entity.ItemFactor
 
 	defer rows.Close()
 
-	// fr.connection.Close(context.Background())
-
 	return factoryStockSlice, nil
 }
 
@@ -140,9 +134,6 @@ func (fr *FactoryRepository) UpdateFactoryStockAmount(factoryId, itemId, itemAmo
 	if err != nil {
 		return err
 	}
-
-	// fr.connection.Close(context.Background())
-
 	return nil
 }
 
@@ -181,7 +172,39 @@ func (fr *FactoryRepository) GetFactoriesWhereItem(itemId int) ([]entity.Factory
 
 	defer rows.Close()
 
-	// fr.connection.Close(context.Background())
-
 	return factorySlice, nil
+}
+
+func (fr *FactoryRepository) GetFactoryProductionsByItemId(itemId int) ([]entity.ItemFactoryProduction, error) {
+	slice := make([]entity.ItemFactoryProduction, 0)
+
+	sql := `
+	SELECT *
+	  FROM item_factory_production
+	 WHERE item_id = $1`
+
+	rows, err := fr.connection.Query(context.Background(), sql, itemId)
+
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Error while getting factories where item is: %v", err))
+		return nil, err
+	}
+
+	for rows.Next() {
+		var f entity.ItemFactoryProduction
+		err := rows.Scan(&f.ItemFactoryRelId, &f.FactoryId, &f.ItemId, &f.ItemPriceToSell, &f.ItemAmountInStock)
+		if err != nil {
+			return nil, err
+		}
+		slice = append(slice, f)
+	}
+
+	if rows.Err() != nil {
+		fmt.Fprintf(os.Stderr, "rows Error: %v\n", rows.Err())
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	return slice, nil
 }
